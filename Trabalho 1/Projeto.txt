@@ -1,0 +1,117 @@
+# Leitura de arquivo.in
+
+# Buscar tipo de MT
+
+# Se ";S" traduzir MT de Sipser para MT duplamente infinita:
+
+# Função traduzir MT de Siper
+# Antes de iniciar a simulação:
+# 1. Deslocar todo o conteúdo da fita para a direita 
+# 2. Inserir um símbolo novo na célula mais a esquerda (#)
+# 3. Inserir um símbolo novo no primeiro branco após a palavra de entrada (&)
+# 4. Posicionar o cabeçote novamente na célula com o primeiro símbolo de entrada
+
+# Processar a fita normalmente
+
+# Ao mover o cabeçote para a esquerda:
+# Verificar se o símbolo lido é o do início de configuração (#)
+# Deslocar todo o conteúdo da fita para a direita inserindo um branco (_) a direita de (#)
+# Mover o cabeçote de volta para o novo branco (_)
+
+# Ao mover o cabeçote para a direita:
+# 1. Verificar se o símbolo lido é o do final de configuração (&)
+# 2. Imprimir branco (_) na célula atual do símbolo (&)
+# 3. Mover o cabeçote para a direita e escrever o símbolo (&) no próximo branco
+# 4. Mover o cabeçote para a esquerda
+
+# Se ";I" traduzir MT duplamente infinita para MT de Sipser:
+
+# Função traduzir MT duplamente infinita:
+# 1. Move o cabeçote para a esquerda
+# 2. Insere um símbolo (#) para a célula em branco
+# 3. Move o cabeçote para a direita, retornando ao símbolo mais a esquerda da entrada
+# 4. Processa as transições normalmente
+# 5. Toda vez que a transição for um movimento para a esquerda, verificar se o símbolo lido é (#)
+# 6. Caso o símbolo seja (#), somente mover o cabeçote para a direita
+
+# Mudar a numeração dos estados presentes no arquivo.in
+# Saída da modificação do arquivo como um arquivo.out
+
+; Machine starts in state 0.
+
+; State 0: Inserir branco no começo da fita
+0 0 _ r 1o
+0 1 _ r 1i
+
+; State 1: Deslocar toda a fita para a direita
+1o 0 * r 1o
+1o 1 0 r 1i
+1o _ 0 r 2
+
+
+1i 1 * r 1i
+1i 0 1 r 1o
+1i _ 1 r 2
+
+; State 2: Final da fita
+2 _ * l 3
+
+; State 3: Inserir o símbolo no início da fita
+3 * * l 3
+3 _ # r 4
+3 # * r 4
+
+incRight # * r 4 ; Volta para o primeiro estado da máquina original
+
+4 # * * incRight
+
+
+
+; Input: a string of 0's and 1's, eg '1001001'
+
+
+; Machine starts in state 0.
+
+; State 0: Inserir branco no começo da fita
+0 0 _ r 1o
+0 1 _ r 1i
+
+
+; State 1: Deslocar toda a fita para a direita
+1o 0 * r 1o
+1o 1 0 r 1i
+1o _ 0 r 2
+1o & 0 r 2incRight
+
+1i 1 * r 1i
+1i 0 1 r 1o
+1i _ 1 r 2
+1i & 1 r 2incRight
+
+; State 2: Inserir o símbolo de final da fita
+2 _ & l 3
+
+
+; State 3: Inserir o símbolo de início da fita
+3 * * l 3
+3 _ # r 4
+
+incLeft & _ r incLeft
+incLeft _ & l 4 ; Voltar para o primeiro estado da máquina original
+
+incRight # * r 0 ; Desloca toda a fita para a direita e
+
+; State 2incRight: Inserir o símbolo de final da fita
+2incRight _ & l 3incRight
+
+; State 3incRight: Inserir o símbolo de início da fita
+3incRight * * l 3incRight
+3incRight _ * * 4 ; Volta para o primeiro estado da máquina original
+
+4 1 * r 4
+4 0 * r 4
+4 _ 0 r 4
+; Todos os estados terão estas duas respectivas transições
+4 # * * incRight
+4 & * * incLeft
+

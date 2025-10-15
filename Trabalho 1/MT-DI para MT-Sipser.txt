@@ -1,0 +1,7 @@
+; configuração da fita
+0 * * l wall
+wall _ # r 0o
+
+; reconhecer a parede da fita
+; wall$% # * r %
+; wall$% * * * %

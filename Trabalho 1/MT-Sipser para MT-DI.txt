@@ -1,0 +1,50 @@
+; Input: a string of 0's and 1's, eg '1001001'
+
+
+; Machine starts in state 0.
+
+; State 0: Inserir branco no começo da fita
+0 0 _ r 1o
+0 1 _ r 1i
+
+
+; State 1: Deslocar toda a fita para a direita
+1o 0 * r 1o
+1o 1 0 r 1i
+1o _ 0 r 2
+1o & 0 r 2incRight
+
+1i 1 * r 1i
+1i 0 1 r 1o
+1i _ 1 r 2
+1i & 1 r 2incRight
+
+; State 2: Inserir o símbolo de final da fita
+2 _ & l 3
+
+
+; State 3: Inserir o símbolo de início da fita
+3 * * l 3
+3 _ # r 4
+
+
+incLeft4 & _ r incLeft4
+incLeft4 _ & l 4
+incLeft4 * * * 4
+
+incRight4 # * r 0 ; Desloca toda a fita para a direita e
+incRight4 * * * 4
+
+; State 2incRight: Inserir o símbolo de final da fita
+incRight2 _ & l 3incRight
+
+; State 3incRight: Inserir o símbolo de início da fita
+incRight3 * * l incRight3
+incRight3 _ * * 4 ; Volta para o primeiro estado da máquina original
+
+4 1 * r 4
+4 0 * r 4
+4 _ 0 r 4
+; Todos os estados terão estas duas respectivas transições
+
+
