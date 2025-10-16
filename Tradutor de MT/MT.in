@@ -1,0 +1,40 @@
+;I
+;MT1
+;Máquina que compute a função f:N->N onde a entrada é a representação binária do número natural.
+;f(n)	= 2n caso n seja par
+;	  n+1 caso n seja ímpar
+
+; ESTADO INICIAL ---> 0
+
+;marca 1o. símbolo
+0 _ _ r halt
+0 0 Z r 1
+0 1 U r 1
+;percorre até final da fita
+1 0 0 r 1
+1 1 1 r 1
+1 _ _ l 2
+;verifica símbolo mais à direita da entrada
+2 0 0 r 4
+2 1 0 l 6
+2 Z 0 l halt-accept
+2 U 1 r 3
+;entrada igual a 1
+3 _ 0 l halt-accept
+;entrada é par: multiplicação por dois
+4 _ 0 l 5
+5 0 0 l 5
+5 1 1 l 5
+5 Z 0 l halt-accept
+5 U 1 l halt-accept
+;entrada é ímpar: muda 1 por 0 até encontrar o 0 mais à direita, que vira 1
+6 1 0 l 6
+6 0 1 l 5
+6 Z 1 l halt-accept
+6 U 1 r 7
+;caso a entrada seja composta apenas de 1s sucessivos
+7 0 0 r 7
+7 _ 0 r halt-accept
+
+10 0 0 r 10
+10 _ 0 r halt-accept

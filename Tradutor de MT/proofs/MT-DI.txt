@@ -1,0 +1,15 @@
+0 0 _ r move0
+0 1 _ r move1
+
+move0 0 * r move0
+move0 1 0 r move1
+move0 _ 0 r wall&
+
+move1 1 * r move1
+move1 0 1 r move0
+move1 _ 1 r wall&
+
+wall& _ & l wall#
+
+wall# * * l wall#
+wall# _ # r 0o

@@ -1,0 +1,3 @@
+; configuração da fita
+0 * * l wall
+wall _ # r 0o
