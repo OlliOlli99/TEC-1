@@ -16,4 +16,5 @@ current_dir = Path(__file__).resolve().parent
 project_root = current_dir.parent
 input_file = project_root / "MT.in"
 
+# Entrada do arquivo de input "MT.in"
 translator(input_file)

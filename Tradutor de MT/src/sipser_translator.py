@@ -26,12 +26,11 @@ def rename_state_zero(content):
         has_comment, trans_content, comment = inline_comment(line)
         strip_line = trans_content.strip()
         
-        if not strip_line or (strip_line.startswith(';') and strip_line != ';S'):
-            new_lines.append(line)
-            continue
-
         if strip_line == ';S':
             new_lines.append(';I')
+            continue
+        elif not strip_line or strip_line.startswith(';'):
+            new_lines.append(line)
             continue
         
         transition = strip_line.split()

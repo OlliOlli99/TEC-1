@@ -5,6 +5,7 @@ current_dir = Path(__file__).resolve().parent
 proofs_dir = current_dir.parent / "proofs"
 mt_di_path = proofs_dir / "MT-DI.txt"
 
+# Ignorar comentários após transição
 def inline_comment(line: str):
     stripped = line.strip()
 
@@ -19,6 +20,7 @@ def inline_comment(line: str):
     
     return (False, stripped, "")
 
+# Renomear estado inicial da MT original para "0o"
 def rename_state_zero(content):
     new_lines = []
 
@@ -26,12 +28,12 @@ def rename_state_zero(content):
         has_comment, trans_content, comment = inline_comment(line)
         strip_line = trans_content.strip()
         
-        if not strip_line or (strip_line.startswith(';') and strip_line != ';I'):
-            new_lines.append(line)
-            continue
-
+        # Ignorar comentários e entrada da máquina
         if strip_line == ';I':
             new_lines.append(';S')
+            continue
+        elif not strip_line or strip_line.startswith(';'):
+            new_lines.append(line)
             continue
         
         transition = strip_line.split()
@@ -72,9 +74,9 @@ def direction_to_wall(content):
 
         current_state, current_symbol, new_symbol, direction, new_state = transition
 
-        if direction == 'r' and len(new_state) == 1:
+        if direction == 'r' and not new_state.startswith("halt"):
             new_state = f"&{new_state}"
-        elif direction == 'l' and len(new_state) == 1:
+        elif direction == 'l' and not new_state.startswith("halt"):
             new_state = f"#{new_state}"
         
         new_line = f"{current_state} {current_symbol} {new_symbol} {direction} {new_state}"
@@ -90,10 +92,9 @@ def create_walls(content):
     left_walls = []
     left_wall_states = set()
 
-    
-
     for line in content:
-        strip_line = line.strip()
+        has_comment, trans_content, comment = inline_comment(line)
+        strip_line = trans_content.strip()
         if not strip_line or strip_line.startswith(';'):
             continue
         
@@ -103,18 +104,18 @@ def create_walls(content):
         
         current_state, current_symbol, new_symbol, direction, new_state = transition
 
-        if direction == 'r' and len(new_state) == 1:
+        if direction == 'r' and not new_state.startswith("halt"):
             if new_state not in right_wall_sates:
                 wall_name = f"&{new_state}"
                 moveB = f"{wall_name}-moveB"
                 right_walls.append(f"\n;right movement transitions state {new_state}")
+                # Estado para verificar se o símbolo atual é &
                 right_walls.append(f"{wall_name} * * * {new_state}")
-                right_walls.append(f"{wall_name} _ * * {new_state}")
                 right_walls.append(f"{wall_name} & _ r {moveB}")
                 right_walls.append(f"{moveB} _ & l {new_state}")
                 right_wall_sates.add(new_state)
         
-        elif direction == 'l' and len(new_state) == 1:
+        elif direction == 'l' and not new_state.startswith("halt"):
             if new_state not in left_wall_states:
                 wall_name = f"#{new_state}"
                 init = f"{wall_name}-0"
@@ -125,28 +126,35 @@ def create_walls(content):
                 lwall = f"{wall_name}-wall#"
 
                 left_walls.append(f"\n;left movement transitions state {new_state}")
+                # Estado para verificar se o símbolo atual é #
                 left_walls.append(f"{wall_name} * * * {new_state}")
                 left_walls.append(f"{wall_name} # * r {init}")
+                # Estado para iniciar a movimentação da fita
                 left_walls.append(f"{init} 0 _ r {move0}")                
                 left_walls.append(f"{init} 1 _ r {move1}")
                 left_walls.append(f"{init} _ _ r {moveB}")
+                # Estado complementar para mover os 0's
                 left_walls.append(f";new move0 state {new_state}")
                 left_walls.append(f"{move0} 0 * r {move0}")
                 left_walls.append(f"{move0} 1 0 r {move1}")
                 left_walls.append(f"{move0} _ 0 r {moveB}")
                 left_walls.append(f"{move0} & 0 r {rwall}")
+                # Estado complementar para mover os 1's
                 left_walls.append(f";new move1 state {new_state}")
                 left_walls.append(f"{move1} 1 * r {move1}")
                 left_walls.append(f"{move1} 0 1 r {move0}")
                 left_walls.append(f"{move1} _ 1 r {moveB}")
                 left_walls.append(f"{move1} & 1 r {rwall}")
+                # Estado complementar para mover os brancos (_)
                 left_walls.append(f";new moveB state {new_state}")
                 left_walls.append(f"{moveB} _ * r {moveB}")
                 left_walls.append(f"{moveB} 0 _ r {move0}")
                 left_walls.append(f"{moveB} 1 _ r {move1}")
                 left_walls.append(f"{moveB} & _ r {rwall}")
+                # Estado complementar para mover a parede à direita
                 left_walls.append(f";new wall& state {new_state}")
                 left_walls.append(f"{rwall} _ & l {lwall}")
+                # Estado para retornar o cabeçote ao novo branco no início da fita
                 left_walls.append(f";new wall# state {new_state}")
                 left_walls.append(f"{lwall} * * l {lwall}")
                 left_walls.append(f"{lwall} _ * * {new_state}")
@@ -173,10 +181,6 @@ def translate_infinite(file_in):
         file_out.write(mt_di + '\n')
 
         file_out.write('\n;translator transitions:')
-        for w in walls:
-            file_out.write(w + '\n')
-        
-        walls = create_walls(new_states)
         for w in walls:
             file_out.write(w + '\n')
         

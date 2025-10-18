@@ -1,16 +1,20 @@
 ;DI translator setup
-0 0 _ r move0
-0 1 _ r move1
+0 0 # r move0
+0 1 # r move1
 
 move0 0 * r move0
 move0 1 0 r move1
-move0 _ 0 r wall&
+move0 _ 0 r moveB
 
 move1 1 * r move1
 move1 0 1 r move0
-move1 _ 1 r wall&
+move1 _ 1 r moveB
 
-wall& _ & l wall#
+moveB _ * * wall&
+moveB 0 _ r move0
+moveB 1 _ r move1
 
-wall# * * l wall#
-wall# _ # r 0o
+move# * * l move#
+move# # * r 0o
+
+wall& _ & l move#
