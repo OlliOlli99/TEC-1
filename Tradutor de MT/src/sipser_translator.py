@@ -82,6 +82,7 @@ def create_walls(content):
         if direction == 'l' and len(new_state) == 1:
             if new_state not in wall_sates:
                 wall_name = f"wall{new_state}"
+                walls.append(f"\n;new wall state {new_state}")                
                 walls.append(f"{wall_name} # * r {new_state}")
                 walls.append(f"{wall_name} * * * {new_state}")
                 wall_sates.add(new_state)
@@ -100,11 +101,12 @@ def translate_sipser(file_in):
         mt_sip = sipser.read()
     
     with open(os.path.splitext(file_in.name)[0] + '.out', 'w') as file_out:
-        file_out.write(mt_sip)
-        file_out.write('\n; wall transitions:\n')
+        file_out.write(mt_sip + '\n')
+
+        file_out.write('\n;translator transitions:')
         for w in walls:
             file_out.write(w + '\n')
         
-        file_out.write('\n; modified Sipser:\n')
+        file_out.write('\n;modified Sipser:\n')
         for line in new_states:
             file_out.write(line + '\n')

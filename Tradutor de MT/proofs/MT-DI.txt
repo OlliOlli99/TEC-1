@@ -1,3 +1,4 @@
+;DI translator setup
 0 0 _ r move0
 0 1 _ r move1
 

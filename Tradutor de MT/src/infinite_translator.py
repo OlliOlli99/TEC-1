@@ -11,12 +11,12 @@ def rename_state_zero(content):
     for line in content.splitlines():
         strip_line = line.strip()
         
-        if not strip_line or (strip_line.startswith(';') and strip_line != ';S'):
+        if not strip_line or (strip_line.startswith(';') and strip_line != ';I'):
             new_lines.append(line)
             continue
 
-        if strip_line == ';S':
-            new_lines.append(';I')
+        if strip_line == ';I':
+            new_lines.append(';S')
             continue
         
         transition = strip_line.split()
@@ -89,9 +89,12 @@ def create_walls(content):
         if direction == 'r' and len(new_state) == 1:
             if new_state not in right_wall_sates:
                 wall_name = f"&{new_state}"
-                right_walls.append(f"\n{wall_name} * * * {new_state}")
-                right_walls.append(f"{wall_name} & _ r {wall_name}")
-                right_walls.append(f"{wall_name} _ & l {new_state}")
+                moveB = f"{wall_name}-moveB"
+                right_walls.append(f"\n;right movement transitions state {new_state}")
+                right_walls.append(f"{wall_name} * * * {new_state}")
+                right_walls.append(f"{wall_name} _ * * {new_state}")
+                right_walls.append(f"{wall_name} & _ r {moveB}")
+                right_walls.append(f"{moveB} _ & l {new_state}")
                 right_wall_sates.add(new_state)
         
         elif direction == 'l' and len(new_state) == 1:
@@ -100,20 +103,34 @@ def create_walls(content):
                 init = f"{wall_name}-0"
                 move0 = f"{wall_name}-move0"
                 move1 = f"{wall_name}-move1"
+                moveB = f"{wall_name}-moveB"
                 rwall = f"{wall_name}-wall&"
                 lwall = f"{wall_name}-wall#"
 
-                left_walls.append(f"\n{wall_name} * * * {new_state}")
+                left_walls.append(f"\n;left movement transitions state {new_state}")
+                left_walls.append(f"{wall_name} * * * {new_state}")
                 left_walls.append(f"{wall_name} # * r {init}")
                 left_walls.append(f"{init} 0 _ r {move0}")                
                 left_walls.append(f"{init} 1 _ r {move1}")
+                left_walls.append(f"{init} _ _ r {moveB}")
+                left_walls.append(f";new move0 state {new_state}")
                 left_walls.append(f"{move0} 0 * r {move0}")
                 left_walls.append(f"{move0} 1 0 r {move1}")
+                left_walls.append(f"{move0} _ 0 r {moveB}")
                 left_walls.append(f"{move0} & 0 r {rwall}")
+                left_walls.append(f";new move1 state {new_state}")
                 left_walls.append(f"{move1} 1 * r {move1}")
                 left_walls.append(f"{move1} 0 1 r {move0}")
+                left_walls.append(f"{move1} _ 1 r {moveB}")
                 left_walls.append(f"{move1} & 1 r {rwall}")
+                left_walls.append(f";new moveB state {new_state}")
+                left_walls.append(f"{moveB} _ * r {moveB}")
+                left_walls.append(f"{moveB} 0 _ r {move0}")
+                left_walls.append(f"{moveB} 1 _ r {move1}")
+                left_walls.append(f"{moveB} & _ r {rwall}")
+                left_walls.append(f";new wall& state {new_state}")
                 left_walls.append(f"{rwall} _ & l {lwall}")
+                left_walls.append(f";new wall# state {new_state}")
                 left_walls.append(f"{lwall} * * l {lwall}")
                 left_walls.append(f"{lwall} _ * * {new_state}")
                 left_wall_states.add(new_state)
@@ -136,14 +153,16 @@ def translate_infinite(file_in):
         mt_di = doubly_infinite.read()
     
     with open(os.path.splitext(file_in.name)[0] + '.out', 'w') as file_out:
-        file_out.write(mt_di)
+        file_out.write(mt_di + '\n')
+
+        file_out.write('\n;translator transitions:')
         for w in walls:
             file_out.write(w + '\n')
-
+        
         walls = create_walls(new_states)
         for w in walls:
             file_out.write(w + '\n')
         
-        file_out.write('\n; modified DI:\n')
+        file_out.write('\n;modified DI:\n')
         for line in new_states:
             file_out.write(line + '\n')
