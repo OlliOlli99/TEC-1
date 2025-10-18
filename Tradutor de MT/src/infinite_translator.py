@@ -5,7 +5,7 @@ current_dir = Path(__file__).resolve().parent
 proofs_dir = current_dir.parent / "proofs"
 mt_di_path = proofs_dir / "MT-DI.txt"
 
-# Ignorar comentários após transição
+# Separar comentários após transição
 def inline_comment(line: str):
     stripped = line.strip()
 
@@ -20,7 +20,7 @@ def inline_comment(line: str):
     
     return (False, stripped, "")
 
-# Renomear estado inicial da MT original para "0o"
+# Renomear estado inicial da MT original para "0o" para evitar conflitos internos do tradutor
 def rename_state_zero(content):
     new_lines = []
 
@@ -28,18 +28,21 @@ def rename_state_zero(content):
         has_comment, trans_content, comment = inline_comment(line)
         strip_line = trans_content.strip()
         
-        # Ignorar comentários e entrada da máquina
+        # Cabeçalho da máquina: converte MT de entrada duplamente infinita para Sipser
         if strip_line == ';I':
             new_lines.append(';S')
             continue
+        # Linha vazia ou comentário
         elif not strip_line or strip_line.startswith(';'):
             new_lines.append(line)
             continue
         
+        # Processa transições da MT
         transition = strip_line.split()
         if len(transition) >= 5:
             current_state, current_symbol, new_symbol, direction, new_state = transition
             
+            # Renomeia o estado inicial
             if current_state == "0":
                 current_state = "0o"
             if new_state == "0":
@@ -52,6 +55,7 @@ def rename_state_zero(content):
     
     return new_lines
 
+# Prefixar os novos estados criados para movimentação da fita com '&' (direita) e '#' (esquerda)
 def direction_to_wall(content):
     new_lines = []
 
@@ -59,14 +63,17 @@ def direction_to_wall(content):
         has_comment, trans_content, comment = inline_comment(line)
         strip_line = trans_content.strip()
         
+        # Linha vazia
         if not strip_line:
             new_lines.append(line)
             continue
-
+        
+        # Comentário
         if strip_line.startswith(';'):
             new_lines.append(line)
             continue
         
+        # Transição inválida
         transition = strip_line.split()
         if len(transition) < 5:
             new_lines.append(line)
@@ -74,6 +81,7 @@ def direction_to_wall(content):
 
         current_state, current_symbol, new_symbol, direction, new_state = transition
 
+        # Prefixa novos estados conforme a direção
         if direction == 'r' and not new_state.startswith("halt"):
             new_state = f"&{new_state}"
         elif direction == 'l' and not new_state.startswith("halt"):
@@ -84,7 +92,7 @@ def direction_to_wall(content):
     
     return new_lines
 
-
+# Criar os estados auxiliares para movimentar a fita
 def create_walls(content):
     right_walls = []
     right_wall_sates = set()
@@ -104,17 +112,19 @@ def create_walls(content):
         
         current_state, current_symbol, new_symbol, direction, new_state = transition
 
+        # Movimentos para a direita
         if direction == 'r' and not new_state.startswith("halt"):
             if new_state not in right_wall_sates:
                 wall_name = f"&{new_state}"
                 moveB = f"{wall_name}-moveB"
                 right_walls.append(f"\n;right movement transitions state {new_state}")
-                # Estado para verificar se o símbolo atual é &
+                # Estado para verificar se o símbolo atual é "&"
                 right_walls.append(f"{wall_name} * * * {new_state}")
                 right_walls.append(f"{wall_name} & _ r {moveB}")
                 right_walls.append(f"{moveB} _ & l {new_state}")
                 right_wall_sates.add(new_state)
         
+        # Movimentos para a esquerda
         elif direction == 'l' and not new_state.startswith("halt"):
             if new_state not in left_wall_states:
                 wall_name = f"#{new_state}"
@@ -166,17 +176,24 @@ def create_walls(content):
     
     return walls
     
-
+# Processar um arquivo de MT de entrada, gerar os estados auxiliares
+# e escrever o arquivo traduzido de saída
 def translate_infinite(file_in):
 
+    # Lê conteúdo da MT de entrada
     file_in_content = file_in.read()
+    # Renomeia estado inicial
     new_content = rename_state_zero(file_in_content)
+    # Cria estados auxiliares para "movimento de parede"
     walls = create_walls(new_content)
+    # Prefixa novos estados de acordo com a direção
     new_states = direction_to_wall(new_content)
 
+    # Lê a MT duplamente infinita original
     with open(mt_di_path, 'r') as doubly_infinite:
         mt_di = doubly_infinite.read()
     
+    # Escreve arquivo de saída
     with open(os.path.splitext(file_in.name)[0] + '.out', 'w') as file_out:
         file_out.write(mt_di + '\n')
 
