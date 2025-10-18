@@ -9,7 +9,7 @@ Este projeto implementa um tradutor de máquinas de Turing que permite converter
 
 > python3 main.py
 
-3. O arquivo traduzido será gerado como MT.out na mesma pasta de MT.in
+3. O arquivo traduzido será gerado como MT.out na pasta "...\Tradutor de MT", junto ao MT.in
 
 ## Estrutura do Projeto
 
