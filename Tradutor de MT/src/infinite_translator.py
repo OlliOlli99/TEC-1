@@ -5,11 +5,26 @@ current_dir = Path(__file__).resolve().parent
 proofs_dir = current_dir.parent / "proofs"
 mt_di_path = proofs_dir / "MT-DI.txt"
 
+def inline_comment(line: str):
+    stripped = line.strip()
+
+    if not stripped or stripped.startswith(';'):
+        return (False, line, "")
+    
+    if ';' in stripped:
+        before, after = stripped.split(';', 1)
+
+        if before.strip():
+            return (True, before.strip(), after.strip())
+    
+    return (False, stripped, "")
+
 def rename_state_zero(content):
     new_lines = []
 
     for line in content.splitlines():
-        strip_line = line.strip()
+        has_comment, trans_content, comment = inline_comment(line)
+        strip_line = trans_content.strip()
         
         if not strip_line or (strip_line.startswith(';') and strip_line != ';I'):
             new_lines.append(line)
@@ -39,7 +54,9 @@ def direction_to_wall(content):
     new_lines = []
 
     for line in content:
-        strip_line = line.strip()
+        has_comment, trans_content, comment = inline_comment(line)
+        strip_line = trans_content.strip()
+        
         if not strip_line:
             new_lines.append(line)
             continue
