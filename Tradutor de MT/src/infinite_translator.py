@@ -92,8 +92,32 @@ def direction_to_wall(content):
     
     return new_lines
 
+def collect_symbols(content):
+    symbols = set(["_"])
+
+    for line in content.splitlines():
+        has_comment, trans_content, comment = inline_comment(line)
+        strip_line = trans_content.strip()
+
+        if not strip_line or strip_line.startswith(';'):
+            continue
+
+        transition = strip_line.split()
+        if len(transition) >= 5:
+            _, current_symbol, new_symbol, _, _ = transition
+            symbols.add(current_symbol)
+            symbols.add(new_symbol)
+    
+    symbols.discard('*')
+    symbols.discard('#')
+    symbols.discard('&')
+
+    return sorted(symbols)
+
 # Criar os estados auxiliares para movimentar a fita
 def create_walls(content):
+    symbols = collect_symbols("\n".join(content))
+
     right_walls = []
     right_wall_sates = set()
 
@@ -129,9 +153,6 @@ def create_walls(content):
             if new_state not in left_wall_states:
                 wall_name = f"#{new_state}"
                 init = f"{wall_name}-0"
-                move0 = f"{wall_name}-move0"
-                move1 = f"{wall_name}-move1"
-                moveB = f"{wall_name}-moveB"
                 rwall = f"{wall_name}-wall&"
                 lwall = f"{wall_name}-wall#"
 
@@ -139,28 +160,23 @@ def create_walls(content):
                 # Estado para verificar se o símbolo atual é #
                 left_walls.append(f"{wall_name} * * * {new_state}")
                 left_walls.append(f"{wall_name} # * r {init}")
-                # Estado para iniciar a movimentação da fita
-                left_walls.append(f"{init} 0 _ r {move0}")                
-                left_walls.append(f"{init} 1 _ r {move1}")
-                left_walls.append(f"{init} _ _ r {moveB}")
-                # Estado complementar para mover os 0's
-                left_walls.append(f";new move0 state {new_state}")
-                left_walls.append(f"{move0} 0 * r {move0}")
-                left_walls.append(f"{move0} 1 0 r {move1}")
-                left_walls.append(f"{move0} _ 0 r {moveB}")
-                left_walls.append(f"{move0} & 0 r {rwall}")
-                # Estado complementar para mover os 1's
-                left_walls.append(f";new move1 state {new_state}")
-                left_walls.append(f"{move1} 1 * r {move1}")
-                left_walls.append(f"{move1} 0 1 r {move0}")
-                left_walls.append(f"{move1} _ 1 r {moveB}")
-                left_walls.append(f"{move1} & 1 r {rwall}")
-                # Estado complementar para mover os brancos (_)
-                left_walls.append(f";new moveB state {new_state}")
-                left_walls.append(f"{moveB} _ * r {moveB}")
-                left_walls.append(f"{moveB} 0 _ r {move0}")
-                left_walls.append(f"{moveB} 1 _ r {move1}")
-                left_walls.append(f"{moveB} & _ r {rwall}")
+                for symb1 in symbols:
+                    symb_label = "B" if symb1 == "_" else symb1
+                    move_state = f"{wall_name}-move{symb_label}"
+
+                    left_walls.append(f"{init} {symb1} * r {move_state}")
+
+                    for symb2 in symbols:
+                        if symb2 == "_":
+                            next_state = f"{wall_name}-moveB"
+                        elif symb2 == "&":
+                            next_state = rwall
+                        else:
+                            next_state = f"{wall_name}-move{symb2}"
+                        
+                        left_walls.append(f"{move_state} {symb2} {symb1} r {next_state}")
+                        
+
                 # Estado complementar para mover a parede à direita
                 left_walls.append(f";new wall& state {new_state}")
                 left_walls.append(f"{rwall} _ & l {lwall}")
