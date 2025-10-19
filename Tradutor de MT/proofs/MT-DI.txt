@@ -14,7 +14,7 @@ moveB _ * * wall&
 moveB 0 _ r move0
 moveB 1 _ r move1
 
+wall& _ & l wall#
+
 wall# * * l wall#
 wall# # * r 0o
-
-wall& _ & l move#
