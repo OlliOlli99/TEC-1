@@ -17,5 +17,4 @@ moveB 1 _ r move1
 wall# * * l wall#
 wall# # * r 0o
 
-
 wall& _ & l move#
