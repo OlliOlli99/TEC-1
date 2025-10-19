@@ -1,3 +1,5 @@
+***OBS: Essa branch tenta aplicar a geração dinâmica das transições para MT-DI***
+
 # Tradutor de MT:
 Este projeto implementa um tradutor de máquinas de Turing que permite converter MTs no modelo de Sipser (fita com início à esquerda) para MTs de fita duplamente infinita e vice-versa.
 
